@@ -1,0 +1,38 @@
+name: Monitor de Licitacoes SSE/SASE
+
+# Entrega diaria por e-mail. Roda de segunda a sexta as 10:00 UTC (~07:00 BRT).
+# O GitHub Actions tem internet aberta, entao consegue acessar a API do PNCP.
+on:
+  schedule:
+    - cron: "0 10 * * 1-5"   # min hora dia mes dia-da-semana (1-5 = seg a sex, UTC)
+  workflow_dispatch:          # permite rodar manualmente pelo botao "Run workflow"
+
+jobs:
+  monitorar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Rodar monitor e enviar e-mail
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          python monitor_licitacoes_ti.py --dias 1 --enviar-email --saida ./out
+
+      - name: Guardar relatorios como artefato (opcional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-licitacoes
+          path: out/
+          retention-days: 30
