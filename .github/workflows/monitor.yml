@@ -1,11 +1,14 @@
 name: Monitor de Licitacoes SSE/SASE
 
 # Entrega diaria por e-mail. Roda de segunda a sexta as 10:00 UTC (~07:00 BRT).
-# O GitHub Actions tem internet aberta, entao consegue acessar a API do PNCP.
 on:
   schedule:
-    - cron: "0 10 * * 1-5"   # min hora dia mes dia-da-semana (1-5 = seg a sex, UTC)
-  workflow_dispatch:          # permite rodar manualmente pelo botao "Run workflow"
+    - cron: "0 10 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
 
 jobs:
   monitorar:
@@ -36,3 +39,6 @@ jobs:
           name: relatorios-licitacoes
           path: out/
           retention-days: 30
+
+      - name: Manter workflow sempre ativo (evita pausa por inatividade)
+        uses: gautamkrishnar/keepalive-workflow@v2
